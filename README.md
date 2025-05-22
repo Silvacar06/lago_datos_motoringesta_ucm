@@ -21,9 +21,32 @@ Este README te indica cual es la arquitectura propuesta y simulada en este motor
 Clona el repositorio en tu máquina local.
    ```bash
    git clone <URL_DEL_REPOSITORIO>
-   ```
+   cd Motor de ingesta
+```
 
-Todos los recursos para poner en marcha este motor de ingesta se encuentran en esta carpeta.
+Levantar un entorno virtual
+
+## Crear un Entorno Virtual
+
+### Windows
+```bash
+python -m venv nombre_del_entorno
+```
+
+### Linux y macOS
+```bash
+python3 -m venv nombre_del_entorno
+```
+
+Reemplaza `nombre_del_entorno` con el nombre que desees para tu entorno virtual.
+
+Cuando se finalice la instalación se puede ejecutar el siguiente comando:
+
+```bash
+   python setup.py bdist_wheel
+```
+
+Esto creará el wheel para poder usarlo junto con los notebooks.
 
 ## Puesta en Marcha
 
@@ -34,7 +57,7 @@ Todos los recursos para poner en marcha este motor de ingesta se encuentran en e
         - datalakecaso
         - landingcaso
 
-2. Descarga el archivo wheel del proyecto desde el repositorio, este se encontrará en la ruta <<<#TODO>>>
+2. Descarga el archivo wheel generado con los comandos anteriores, este se encontrará en la ruta **dist/** con el nombre **motor_ingesta-0.1.0-py3-none-any.whl**
 
 3. Instala el archivo wheel en tu clúster de Databricks.
 
@@ -96,3 +119,28 @@ Este contiene todas las posibles fuentes de datos, por convención se tomarán d
 - **Power BI y Tableau**: Herramientas de visualización utilizadas para consumir y analizar los datos refinados (propuesta).
 
 Esta arquitectura permite a FarmIA manejar eficientemente grandes volúmenes de datos, proporcionando escalabilidad y flexibilidad en el procesamiento y análisis.
+
+
+# Resultados
+
+Posterior a la ejecución de los notebooks de generación de eventos y generación de archivos
+
+1. En el container de landing debemos tener las rutas de los archivos para dispositivos iot y sales orders:
+
+![](images/landing_evidence.png)
+
+2. Del mismo modo, debemos terner los eventos en nuestro topic de kafka, con su respectivo schema:
+
+![](images/messages_kafka.png)
+
+![](images/schema_registry.png)
+
+Por ultimo, al ejecutar el motor de ingesta, tenemos ya los datos con la metadata aregada y su particionado en la carpeta bronze:
+
+![](images/bronze_folders.png)
+
+
+
+
+
+
