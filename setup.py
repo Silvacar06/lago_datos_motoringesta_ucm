@@ -9,7 +9,7 @@ setup(
     long_description="Este motor de ingesta se crea para realizar el curso de ingestas y lagos de datos",
     long_description_content_type="text/markdown",
     url="https://github.com/Silvacar06/lago_datos_motoringesta_ucm",
-    python_requires="=3.11",
+    python_requires='>=3.11',
     packages=find_packages(),
     package_data={"motor_ingesta": ["resources/*.csv"]}
 )
