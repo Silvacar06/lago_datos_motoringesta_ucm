@@ -31,7 +31,5 @@ venv.bak/
 dbfs/
 
 # Archivos de configuración
-config/config.json
-
-notebooks/ccloud-python-client.zip
-notebooks/ccloud-python-client/*
+config/
+config.json
