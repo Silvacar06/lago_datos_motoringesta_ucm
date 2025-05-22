@@ -28,4 +28,4 @@ venv.bak/
 *.log
 
 # Databricks
-dbfs/ 
+dbfs/
