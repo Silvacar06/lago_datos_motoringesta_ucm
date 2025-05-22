@@ -2,7 +2,7 @@ from pyspark.sql.functions import current_timestamp, input_file_name, replace,li
 
 class LandingStreamReader:
 
-    def __init__(self, builder, spark):
+    def __init__(self, builder):
         self.datasource = builder.datasource
         self.dataset = builder.dataset
         self.landing_path = builder.landing_path
@@ -58,7 +58,8 @@ class LandingStreamReader:
             self.raw_path = None
             self.bronze_path = None
             self.format = None
-        
+            self.spark = None
+
         def set_datasource(self, datasource):
             self.datasource = datasource
             return self
@@ -91,7 +92,7 @@ class LandingStreamReader:
             return LandingStreamReader(self)
         
 class BronzeStreamWriter:
-    def __init__(self, builder, spark):
+    def __init__(self, builder):
         self.datasource = builder.datasource
         self.dataset = builder.dataset
         self.landing_path = builder.landing_path
@@ -100,9 +101,9 @@ class BronzeStreamWriter:
         self.dataset_landing_path = f"{self.landing_path}/{self.datasource}/{self.dataset}"
         self.dataset_raw_path =  f"{self.raw_path}/{self.datasource}/{self.dataset}"
         self.dataset_bronze_path = f"{self.bronze_path}/{self.datasource}/{self.dataset}"
-        self.dataset_checkpoint_location = f'{dataset_bronze_path}_checkpoint'
+        self.dataset_checkpoint_location = f'{self.dataset_bronze_path}_checkpoint'
         self.table = f'hive_metastore.bronze.{self.datasource}_{self.dataset}'
-        self.query_name = f"bronze-{datasource}-{dataset}"
+        self.query_name = f"bronze-{self.datasource}-{self.dataset}"
         self.spark = builder.spark
         #dbutils.fs.mkdirs(self.dataset_raw_path)
         #dbutils.fs.mkdirs(self.dataset_bronze_path)
@@ -145,6 +146,7 @@ class BronzeStreamWriter:
             self.landing_path = None
             self.raw_path = None
             self.bronze_path = None
+            self.spark = None
         
         def set_datasource(self, datasource):
             self.datasource = datasource
@@ -200,13 +202,13 @@ def batch_ingestion(datasource, dataset, landing_path, raw_path, bronze_path, fo
     print(reader)
     print(writer)
 
-#    (reader
-#    .read()
-#    .writeStream
-#    .foreachBatch(writer.append_2_bronze)
-#    .trigger(availableNow=True)
-#    #.trigger(processingTime="60 seconds") # modo continuo
-#    .option("checkpointLocation", writer.dataset_checkpoint_location)
-#    .queryName(writer.query_name)
-#    .start()
-#    )
+    (reader
+    .read()
+    .writeStream
+    .foreachBatch(writer.append_2_bronze)
+    #.trigger(availableNow=True)
+    .trigger(processingTime="3600 seconds") # modo continuo
+    .option("checkpointLocation", writer.dataset_checkpoint_location)
+    .queryName(writer.query_name)
+    .start()
+    )
