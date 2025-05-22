@@ -1,3 +1,5 @@
 databricks-connect==15.4.4
 grpcio==1.59.3        # necesarias por incompatibilidad de databricks-connect con la versión más reciente de grpcio
 grpcio-status==1.59.3
+setuptools
+wheel
