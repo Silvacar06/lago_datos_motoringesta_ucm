@@ -8,7 +8,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-*.whl
+.whl
 
 # Environments
 .env
@@ -29,3 +29,9 @@ venv.bak/
 
 # Databricks
 dbfs/
+
+# Archivos de configuración
+config/config.json
+
+notebooks/ccloud-python-client.zip
+notebooks/ccloud-python-client/*
