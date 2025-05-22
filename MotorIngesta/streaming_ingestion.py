@@ -12,6 +12,8 @@ def read_config():
   return config
 
 def streaming_ingestion(topic, dataset_bronze_path, dataset_bronze_checkpoint_path, table_name, spark, schema_registry_client):
+
+    print(spark)
     
     conf = read_config()
 

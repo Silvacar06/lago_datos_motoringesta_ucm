@@ -13,6 +13,10 @@ class LandingStreamReader:
         self.dataset_bronze_schema_location = f'{self.bronze_path}/{self.datasource}/{self.dataset}_schema'
         self.spark = builder.spark
         self.dbutils = builder.dbutils
+
+        print(self.spark)
+        print(self.dbutils)
+
         self.dbutils.fs.mkdirs(self.dataset_bronze_schema_location)
     
     def __str__(self):
@@ -112,6 +116,8 @@ class BronzeStreamWriter:
         self.query_name = f"bronze-{self.datasource}-{self.dataset}"
         self.spark = builder.spark
         self.dbutils = builder.dbutils
+        print(self.spark)
+        print(self.dbutils)
         self.dbutils.fs.mkdirs(self.dataset_raw_path)
         self.dbutils.fs.mkdirs(self.dataset_bronze_path)
         self.dbutils.fs.mkdirs(self.dataset_checkpoint_location)
@@ -190,6 +196,9 @@ class BronzeStreamWriter:
 
 def batch_ingestion(datasource, dataset, landing_path, raw_path, bronze_path, format, spark, dbutils, type=1):
 
+    print(spark)
+    print(dbutils)
+    
     reader = (LandingStreamReader.Builder()          
     .set_datasource(datasource)
     .set_dataset(dataset)
