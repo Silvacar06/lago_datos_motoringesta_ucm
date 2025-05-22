@@ -12,7 +12,8 @@ class LandingStreamReader:
         self.dataset_landing_path = f'{self.landing_path}/{self.datasource}/{self.dataset}'
         self.dataset_bronze_schema_location = f'{self.bronze_path}/{self.datasource}/{self.dataset}_schema'
         self.spark = builder.spark
-        #dbutils.fs.mkdirs(self.dataset_bronze_schema_location)
+        self.dbutils = builder.dbutils
+        self.dbutils.fs.mkdirs(self.dataset_bronze_schema_location)
     
     def __str__(self):
         return (f"LandingStreamReader(datasource='{self.datasource}',dataset='{self.dataset}')")
@@ -59,6 +60,7 @@ class LandingStreamReader:
             self.bronze_path = None
             self.format = None
             self.spark = None
+            self.dbutils = None
 
         def set_datasource(self, datasource):
             self.datasource = datasource
@@ -88,6 +90,10 @@ class LandingStreamReader:
             self.spark = spark
             return self
         
+        def set_dbutils(self, dbutils):
+            self.dbutils = dbutils
+            return self
+        
         def build(self):
             return LandingStreamReader(self)
         
@@ -105,9 +111,10 @@ class BronzeStreamWriter:
         self.table = f'hive_metastore.bronze.{self.datasource}_{self.dataset}'
         self.query_name = f"bronze-{self.datasource}-{self.dataset}"
         self.spark = builder.spark
-        #dbutils.fs.mkdirs(self.dataset_raw_path)
-        #dbutils.fs.mkdirs(self.dataset_bronze_path)
-        #dbutils.fs.mkdirs(self.dataset_checkpoint_location)
+        self.dbutils = builder.dbutils
+        self.dbutils.fs.mkdirs(self.dataset_raw_path)
+        self.dbutils.fs.mkdirs(self.dataset_bronze_path)
+        self.dbutils.fs.mkdirs(self.dataset_checkpoint_location)
 
     def __str__(self):
         return (f"BronzeStreamWriter(datasource='{self.datasource}',dataset='{self.dataset}')")
@@ -118,8 +125,8 @@ class BronzeStreamWriter:
         for file in files:
           if file:
               file_landing_path = file.replace(self.dataset_raw_path,self.dataset_landing_path)
-              #dbutils.fs.mkdirs(file[0:file.rfind('/')+1])
-              #dbutils.fs.mv(file_landing_path,file)
+              self.dbutils.fs.mkdirs(file[0:file.rfind('/')+1])
+              self.dbutils.fs.mv(file_landing_path,file)
     
     def write_data(self,df):
       self.spark.sql( 'CREATE DATABASE IF NOT EXISTS hive_metastore.bronze') 
@@ -147,7 +154,8 @@ class BronzeStreamWriter:
             self.raw_path = None
             self.bronze_path = None
             self.spark = None
-        
+            self.dbutils = None
+
         def set_datasource(self, datasource):
             self.datasource = datasource
             return self
@@ -172,11 +180,15 @@ class BronzeStreamWriter:
             self.spark = spark
             return self
         
+        def set_dbutils(self, dbutils):
+            self.dbutils = dbutils
+            return self
+        
         def build(self):
             return BronzeStreamWriter(self)
         
 
-def batch_ingestion(datasource, dataset, landing_path, raw_path, bronze_path, format, spark):
+def batch_ingestion(datasource, dataset, landing_path, raw_path, bronze_path, format, spark, dbutils, type=1):
 
     reader = (LandingStreamReader.Builder()          
     .set_datasource(datasource)
@@ -186,6 +198,7 @@ def batch_ingestion(datasource, dataset, landing_path, raw_path, bronze_path, fo
     .set_bronze_path(bronze_path)
     .set_format(format)
     .set_spark(spark)
+    .set_dbutils(dbutils)
     .build()
     )
     
@@ -196,19 +209,32 @@ def batch_ingestion(datasource, dataset, landing_path, raw_path, bronze_path, fo
     .set_raw_path(raw_path)
     .set_bronze_path(bronze_path)
     .set_spark(spark)
+    .set_dbutils(dbutils)
     .build()
     )
 
     print(reader)
     print(writer)
 
-    (reader
-    .read()
-    .writeStream
-    .foreachBatch(writer.append_2_bronze)
-    #.trigger(availableNow=True)
-    .trigger(processingTime="3600 seconds") # modo continuo
-    .option("checkpointLocation", writer.dataset_checkpoint_location)
-    .queryName(writer.query_name)
-    .start()
-    )
+    if type == 1:
+        (reader
+            .read()
+            .writeStream
+            .foreachBatch(writer.append_2_bronze)
+            #.trigger(availableNow=True)
+            .trigger(processingTime="3600 seconds") # modo continuo
+            .option("checkpointLocation", writer.dataset_checkpoint_location)
+        .queryName(writer.query_name)
+        .start()
+        )
+    else:
+        (reader
+            .read()
+            .writeStream
+            .foreachBatch(writer.append_2_bronze)
+            .trigger(availableNow=True)
+            #.trigger(processingTime="3600 seconds") # modo continuo
+            .option("checkpointLocation", writer.dataset_checkpoint_location)
+        .queryName(writer.query_name)
+        .start()
+        )
